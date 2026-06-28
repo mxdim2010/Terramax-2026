@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Craftsman bungalow renovation in progress">
+  <rect width="1200" height="800" fill="#efe6d5"/>
+  <rect y="600" width="1200" height="200" fill="#7d6a53"/>
+  <rect x="280" y="300" width="640" height="330" fill="#f2ede2" stroke="#30261b" stroke-width="7"/>
+  <polygon points="240,340 600,170 960,340" fill="#6f563d" stroke="#30261b" stroke-width="7"/>
+  <line x1="280" y1="330" x2="920" y2="630" stroke="#b78342" stroke-width="6" stroke-dasharray="18 10"/>
+  <line x1="920" y1="330" x2="280" y2="630" stroke="#b78342" stroke-width="6" stroke-dasharray="18 10"/>
+  <rect x="340" y="390" width="130" height="110" fill="#aac2ce" stroke="#30261b" stroke-width="5"/>
+  <rect x="730" y="390" width="130" height="110" fill="#aac2ce" stroke="#30261b" stroke-width="5"/>
+  <rect x="545" y="470" width="110" height="160" fill="#cbb799" stroke="#30261b" stroke-width="5"/>
+  <rect x="180" y="90" width="840" height="90" fill="#c87a1a" rx="12"/>
+  <text x="600" y="152" text-anchor="middle" font-family="Arial, sans-serif" font-size="50" font-weight="700" fill="#ffffff">IN PROGRESS</text>
+  <text x="600" y="742" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" fill="#ffffff">Craftsman Bungalow</text>
+</svg>

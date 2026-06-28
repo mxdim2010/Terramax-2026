@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1000" viewBox="0 0 1400 1000" role="img" aria-label="TerraMax project team">
+  <rect width="1400" height="1000" fill="#ece3d3"/>
+  <rect y="700" width="1400" height="300" fill="#6f5d47"/>
+  <rect x="190" y="210" width="1020" height="620" fill="#f6f1e7" stroke="#2d2419" stroke-width="8"/>
+  <text x="700" y="330" text-anchor="middle" font-family="Arial, sans-serif" font-size="64" font-weight="700" fill="#2d2419">TerraMax Team</text>
+  <g fill="#d99c2f" stroke="#2d2419" stroke-width="5">
+    <circle cx="420" cy="470" r="55"/>
+    <rect x="370" y="525" width="100" height="155" rx="14"/>
+    <circle cx="590" cy="470" r="55"/>
+    <rect x="540" y="525" width="100" height="155" rx="14"/>
+    <circle cx="760" cy="470" r="55"/>
+    <rect x="710" y="525" width="100" height="155" rx="14"/>
+    <circle cx="930" cy="470" r="55"/>
+    <rect x="880" y="525" width="100" height="155" rx="14"/>
+  </g>
+  <text x="700" y="770" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" fill="#2d2419">Licensed contractors, project managers, and design specialists</text>
+</svg>

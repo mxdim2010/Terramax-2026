@@ -97,7 +97,7 @@ const process = [
 const projects = [
   {
     title: "Victorian Home Restoration",
-    image: "/images/sold-victorian-home.jpg",
+    image: "/images/sold-victorian-home.svg",
     status: "Sold",
     statusClass: "bg-emerald-600",
     detailLeft: "Purchase: GBP 180K",
@@ -105,7 +105,7 @@ const projects = [
   },
   {
     title: "Modern Family Home",
-    image: "/images/rented-modern-family-home.jpg",
+    image: "/images/rented-modern-family-home.svg",
     status: "Rented",
     statusClass: "bg-sky-600",
     detailLeft: "Purchase: GBP 220K",
@@ -113,7 +113,7 @@ const projects = [
   },
   {
     title: "Craftsman Bungalow",
-    image: "/images/in-progress-craftsman-bungalow.jpg",
+    image: "/images/in-progress-craftsman-bungalow.svg",
     status: "In Progress",
     statusClass: "bg-amber-600",
     detailLeft: "Purchase: GBP 165K",
@@ -257,7 +257,7 @@ export default function HomePage() {
               <div className="absolute -bottom-5 -right-5 h-24 w-24 border-b-4 border-r-4 border-stone-900" />
               <div className="relative overflow-hidden border border-stone-900 bg-stone-200 p-2 shadow-[10px_10px_0px_0px_rgba(24,24,24,0.9)]">
                 <Image
-                  src="/images/hero-house.jpg"
+                  src="/images/hero-house.svg"
                   alt="Renovated house exterior"
                   width={860}
                   height={600}
@@ -417,7 +417,7 @@ export default function HomePage() {
 
             <div className="relative overflow-hidden border border-stone-900 bg-white p-2 shadow-[10px_10px_0px_0px_rgba(24,24,24,0.9)]">
               <Image
-                src="/images/terramax-team.jpg"
+                src="/images/terramax-team.svg"
                 alt="TerraMax team on site"
                 width={900}
                 height={700}

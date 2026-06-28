@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Modern family home rented">
+  <rect width="1200" height="800" fill="#dde9ee"/>
+  <rect y="590" width="1200" height="210" fill="#6f7a6f"/>
+  <rect x="220" y="330" width="760" height="290" fill="#f1f5f6" stroke="#233038" stroke-width="7"/>
+  <rect x="320" y="250" width="560" height="120" fill="#263238"/>
+  <rect x="300" y="380" width="160" height="120" fill="#9bc0d3" stroke="#233038" stroke-width="5"/>
+  <rect x="520" y="380" width="160" height="120" fill="#9bc0d3" stroke="#233038" stroke-width="5"/>
+  <rect x="740" y="380" width="160" height="120" fill="#9bc0d3" stroke="#233038" stroke-width="5"/>
+  <rect x="540" y="470" width="120" height="150" fill="#d2c3a8" stroke="#233038" stroke-width="5"/>
+  <rect x="250" y="90" width="700" height="90" fill="#2f7fc1" rx="12"/>
+  <text x="600" y="152" text-anchor="middle" font-family="Arial, sans-serif" font-size="52" font-weight="700" fill="#ffffff">RENTED</text>
+  <text x="600" y="735" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" fill="#ffffff">Modern Family Home</text>
+</svg>
