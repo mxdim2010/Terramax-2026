@@ -1,23 +1,34 @@
 import type { Metadata } from "next"
-import { Space_Grotesk, Fraunces } from "next/font/google"
+import { Oswald, Source_Sans_3 } from "next/font/google"
+
 import "./globals.css"
 
-const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-body" })
-const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-display" })
+const fontDisplay = Oswald({
+  subsets: ["latin"],
+  variable: "--font-display",
+  weight: ["400", "500", "600", "700"],
+})
+
+const fontBody = Source_Sans_3({
+  subsets: ["latin"],
+  variable: "--font-body",
+  weight: ["400", "500", "600", "700"],
+})
 
 export const metadata: Metadata = {
-  title: "Terramax Developments",
-  description: "Terramax Developments buys, renovates, and delivers quality residential properties.",
+  title: "TerraMax Developments | Property Renovation and Acquisition",
+  description:
+    "TerraMax Developments acquires and renovates residential properties with fast offers, quality construction, and strong market outcomes.",
 }
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   return (
     <html lang="en">
-      <body className={`${spaceGrotesk.variable} ${fraunces.variable}`}>{children}</body>
+      <body className={`${fontDisplay.variable} ${fontBody.variable}`}>{children}</body>
     </html>
   )
 }
