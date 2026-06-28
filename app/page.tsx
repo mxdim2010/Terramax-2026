@@ -136,6 +136,32 @@ const faqs = [
   },
 ]
 
+const localBusinessSchema = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  name: "TerraMax Developments",
+  description:
+    "TerraMax Developments buys residential properties quickly, renovates them, and offers transparent direct-sale options.",
+  telephone: "+44 7576039659",
+  email: "contact@terramaxdev.com",
+  areaServed: "United Kingdom",
+  url: "https://terramaxdev.com",
+  sameAs: ["https://github.com/mxdim2010/Terramax-2026"],
+}
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: faq.answer,
+    },
+  })),
+}
+
 const process = [
   {
     step: "01",
@@ -189,7 +215,21 @@ const projects = [
 export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [quickPostcode, setQuickPostcode] = useState("")
   const [formStatus, setFormStatus] = useState<FormStatus>({ type: null, message: "" })
+
+  const handleQuickValuation = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    const contactSection = document.getElementById("contact")
+    contactSection?.scrollIntoView({ behavior: "smooth", block: "start" })
+
+    const propertyAddressInput = document.getElementById("propertyAddress") as HTMLInputElement | null
+    if (propertyAddressInput && quickPostcode.trim()) {
+      propertyAddressInput.value = quickPostcode.trim()
+      propertyAddressInput.focus()
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -223,7 +263,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="relative isolate min-h-screen bg-stone-100 text-stone-900">
+    <div className="relative isolate min-h-screen bg-stone-100 pb-24 text-stone-900 md:pb-0">
       <div className="pointer-events-none fixed inset-0 -z-10">
         <Image
           src="/images/hero-house.jpg"
@@ -234,6 +274,9 @@ export default function HomePage() {
         />
         <div className="absolute inset-0 bg-stone-100/72" />
       </div>
+
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       <header className="sticky top-0 z-50 border-b border-stone-300/70 bg-stone-100/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
@@ -312,6 +355,24 @@ export default function HomePage() {
                 TerraMax acquires properties quickly, renovates to a high standard, and delivers measurable value for
                 owners, buyers, and neighborhoods.
               </p>
+
+              <form onSubmit={handleQuickValuation} className="mt-6 flex max-w-xl flex-col gap-3 sm:flex-row">
+                <Input
+                  value={quickPostcode}
+                  onChange={(e) => setQuickPostcode(e.target.value)}
+                  placeholder="Enter your postcode for a fast cash offer"
+                  aria-label="Postcode"
+                  className="h-12 rounded-none border-stone-500 bg-white/90 text-stone-900 placeholder:text-stone-500"
+                />
+                <Button type="submit" className="h-12 rounded-none bg-stone-900 px-6 uppercase tracking-[0.1em] hover:bg-stone-800">
+                  Get Cash Offer
+                </Button>
+              </form>
+
+              <p className="mt-2 text-xs uppercase tracking-[0.12em] text-stone-600">
+                No obligation. Typical response within 24 hours.
+              </p>
+
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button asChild className="rounded-none bg-amber-500 px-7 py-6 text-sm uppercase tracking-[0.14em] text-stone-950 hover:bg-amber-400">
                   <Link href="#contact">
@@ -759,6 +820,17 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-stone-700 bg-stone-950/95 p-3 backdrop-blur md:hidden">
+        <div className="mx-auto flex max-w-7xl items-center gap-2">
+          <Button asChild className="h-11 flex-1 rounded-none border border-amber-500 bg-amber-500 text-xs uppercase tracking-[0.12em] text-stone-950 hover:bg-amber-400">
+            <a href="tel:+447576039659">Call Now</a>
+          </Button>
+          <Button asChild className="h-11 flex-1 rounded-none bg-stone-100 text-xs uppercase tracking-[0.12em] text-stone-950 hover:bg-stone-200">
+            <Link href="#contact">Get Offer</Link>
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }
