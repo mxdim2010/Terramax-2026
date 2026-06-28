@@ -286,7 +286,7 @@ export default function HomePage() {
               width={420}
               height={120}
               priority
-              className="h-12 w-auto object-contain sm:h-14"
+              className="h-16 w-auto object-contain sm:h-20"
             />
           </Link>
 
@@ -807,7 +807,7 @@ export default function HomePage() {
               alt="TerraMax Developments logo"
               width={420}
               height={120}
-              className="h-12 w-auto object-contain"
+              className="h-16 w-auto object-contain"
             />
             <p className="mt-2 text-sm text-stone-400">Transforming properties and communities through disciplined renovation.</p>
           </div>
