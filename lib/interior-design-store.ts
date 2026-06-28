@@ -27,7 +27,7 @@ type StoreShape = {
   handoffLeads: DesignerHandoffLead[]
 }
 
-const dataDir = path.join(process.cwd(), ".data")
+const dataDir = process.env.VERCEL ? path.join("/tmp", ".data") : path.join(process.cwd(), ".data")
 const dbFile = path.join(dataDir, "interior-design-db.json")
 let memoryStore: StoreShape = { projects: [], handoffLeads: [] }
 let memoryMode = false
@@ -37,7 +37,12 @@ async function ensureStore() {
     return
   }
 
-  await mkdir(dataDir, { recursive: true })
+  try {
+    await mkdir(dataDir, { recursive: true })
+  } catch {
+    memoryMode = true
+    return
+  }
 
   try {
     await readFile(dbFile, "utf-8")
