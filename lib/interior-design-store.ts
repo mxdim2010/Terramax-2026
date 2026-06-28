@@ -29,28 +29,57 @@ type StoreShape = {
 
 const dataDir = path.join(process.cwd(), ".data")
 const dbFile = path.join(dataDir, "interior-design-db.json")
+let memoryStore: StoreShape = { projects: [], handoffLeads: [] }
+let memoryMode = false
 
 async function ensureStore() {
+  if (memoryMode) {
+    return
+  }
+
   await mkdir(dataDir, { recursive: true })
 
   try {
     await readFile(dbFile, "utf-8")
   } catch {
-    const initial: StoreShape = { projects: [], handoffLeads: [] }
-    await writeFile(dbFile, JSON.stringify(initial, null, 2), "utf-8")
+    try {
+      await writeFile(dbFile, JSON.stringify(memoryStore, null, 2), "utf-8")
+    } catch {
+      memoryMode = true
+    }
   }
 }
 
 async function readStore(): Promise<StoreShape> {
   await ensureStore()
+
+  if (memoryMode) {
+    return memoryStore
+  }
+
   const raw = await readFile(dbFile, "utf-8")
 
-  return JSON.parse(raw) as StoreShape
+  try {
+    return JSON.parse(raw) as StoreShape
+  } catch {
+    return memoryStore
+  }
 }
 
 async function writeStore(store: StoreShape) {
+  memoryStore = store
+
   await ensureStore()
-  await writeFile(dbFile, JSON.stringify(store, null, 2), "utf-8")
+
+  if (memoryMode) {
+    return
+  }
+
+  try {
+    await writeFile(dbFile, JSON.stringify(store, null, 2), "utf-8")
+  } catch {
+    memoryMode = true
+  }
 }
 
 export async function listProjects() {
