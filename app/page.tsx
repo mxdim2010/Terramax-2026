@@ -165,9 +165,9 @@ export default function HomePage() {
           alt=""
           fill
           priority
-          className="object-cover opacity-[0.14]"
+          className="object-cover opacity-[0.26]"
         />
-        <div className="absolute inset-0 bg-stone-100/86" />
+        <div className="absolute inset-0 bg-stone-100/72" />
       </div>
 
       <header className="sticky top-0 z-50 border-b border-stone-300/70 bg-stone-100/90 backdrop-blur">
