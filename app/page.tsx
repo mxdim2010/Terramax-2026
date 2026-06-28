@@ -71,6 +71,71 @@ const serviceCards = [
   },
 ]
 
+const trustStats = [
+  { label: "Average Review Score", value: "4.9/5" },
+  { label: "Typical Offer Window", value: "Within 24h" },
+  { label: "Fastest Completion", value: "As little as 7 days" },
+  { label: "Years in Market", value: "15+" },
+]
+
+const propertyTypes = [
+  "Probate Properties",
+  "Tenanted Properties",
+  "Short-Lease Flats",
+  "Homes Needing Full Refurbishment",
+  "Inherited Houses",
+  "Fire or Subsidence Cases",
+]
+
+const comparisonRows = [
+  { metric: "Time to complete", direct: "7-21 days", market: "4-9 months" },
+  { metric: "Estate agent fees", direct: "GBP 0", market: "1%-3% + VAT" },
+  { metric: "Repairs before sale", direct: "Not required", market: "Usually expected" },
+  { metric: "Viewing disruption", direct: "None", market: "Multiple viewings" },
+  { metric: "Certainty", direct: "Cash-backed process", market: "Chain + mortgage risk" },
+]
+
+const testimonials = [
+  {
+    quote:
+      "Fast, direct, and clear from day one. We avoided months of uncertainty and completed on our timeline.",
+    author: "Seller in Greater London",
+  },
+  {
+    quote:
+      "No repairs, no endless viewings, no hidden charges. Exactly what we needed for a stress-free sale.",
+    author: "Landlord in Birmingham",
+  },
+  {
+    quote:
+      "Professional team and excellent communication throughout. The process was simple and reliable.",
+    author: "Family Seller in Manchester",
+  },
+]
+
+const faqs = [
+  {
+    question: "How quickly can TerraMax make an offer?",
+    answer:
+      "After reviewing your property details, we typically provide a no-obligation cash offer within 24 hours.",
+  },
+  {
+    question: "Do I need to repair or clean the property first?",
+    answer:
+      "No. We purchase properties in their current condition, including homes that require major renovation work.",
+  },
+  {
+    question: "Are there any agency or legal fees to pay?",
+    answer:
+      "We do not charge estate agency fees. We keep costs transparent and walk you through everything before you proceed.",
+  },
+  {
+    question: "What kinds of properties do you buy?",
+    answer:
+      "We buy houses, flats, inherited homes, tenanted properties, and complex cases such as short leases or structural issues.",
+  },
+]
+
 const process = [
   {
     step: "01",
@@ -299,6 +364,25 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section className="border-b border-stone-300 bg-white/85 py-10 backdrop-blur-sm">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {trustStats.map((item) => (
+                <div key={item.label} className="border border-stone-300 bg-white/90 p-5">
+                  <p className="font-display text-3xl uppercase tracking-[0.05em] text-stone-900">{item.value}</p>
+                  <p className="mt-2 text-xs uppercase tracking-[0.16em] text-stone-600">{item.label}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 flex flex-wrap gap-2">
+              <Badge className="rounded-none border border-stone-800 bg-transparent text-stone-800">Property Ombudsman Aligned</Badge>
+              <Badge className="rounded-none border border-stone-800 bg-transparent text-stone-800">Transparent Fee Policy</Badge>
+              <Badge className="rounded-none border border-stone-800 bg-transparent text-stone-800">Direct Cash Buyer Model</Badge>
+              <Badge className="rounded-none border border-stone-800 bg-transparent text-stone-800">No Obligation Offers</Badge>
+            </div>
+          </div>
+        </section>
+
         <section id="services" className="border-b border-stone-300 bg-stone-50 py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-12 flex flex-wrap items-end justify-between gap-6">
@@ -325,6 +409,17 @@ export default function HomePage() {
                   </Card>
                 )
               })}
+            </div>
+
+            <div className="mt-10">
+              <p className="text-sm uppercase tracking-[0.2em] text-stone-500">Property Types We Buy</p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                {propertyTypes.map((type) => (
+                  <span key={type} className="border border-stone-400 bg-white px-3 py-2 text-xs uppercase tracking-[0.12em] text-stone-700">
+                    {type}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -375,6 +470,38 @@ export default function HomePage() {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-stone-300 bg-white py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-8">
+              <p className="text-sm uppercase tracking-[0.22em] text-stone-500">Transparent Comparison</p>
+              <h2 className="mt-3 font-display text-4xl uppercase tracking-[0.05em] sm:text-5xl">
+                Direct Sale vs Traditional Listing
+              </h2>
+            </div>
+
+            <div className="overflow-x-auto border border-stone-300 bg-white">
+              <table className="w-full min-w-[720px] border-collapse text-left">
+                <thead className="bg-stone-900 text-stone-100">
+                  <tr>
+                    <th className="px-5 py-4 text-xs uppercase tracking-[0.16em]">Metric</th>
+                    <th className="px-5 py-4 text-xs uppercase tracking-[0.16em]">TerraMax Direct</th>
+                    <th className="px-5 py-4 text-xs uppercase tracking-[0.16em]">Open Market Route</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {comparisonRows.map((row) => (
+                    <tr key={row.metric} className="border-t border-stone-200">
+                      <td className="px-5 py-4 font-semibold text-stone-900">{row.metric}</td>
+                      <td className="px-5 py-4 text-emerald-700">{row.direct}</td>
+                      <td className="px-5 py-4 text-stone-600">{row.market}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </section>
@@ -434,6 +561,45 @@ export default function HomePage() {
                 height={700}
                 className="h-full w-full object-cover"
               />
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-stone-300 bg-stone-900 py-20 text-stone-100">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-10">
+              <p className="text-sm uppercase tracking-[0.2em] text-amber-400">Social Proof</p>
+              <h2 className="mt-3 font-display text-4xl uppercase tracking-[0.05em] sm:text-5xl">Recent Seller Feedback</h2>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-3">
+              {testimonials.map((item) => (
+                <Card key={item.author} className="rounded-none border-stone-700 bg-stone-800 text-stone-100">
+                  <CardContent className="p-6">
+                    <p className="text-stone-200">&ldquo;{item.quote}&rdquo;</p>
+                    <p className="mt-4 text-xs uppercase tracking-[0.14em] text-amber-400">{item.author}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-stone-300 bg-white py-20">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-8 text-center">
+              <p className="text-sm uppercase tracking-[0.2em] text-stone-500">FAQs</p>
+              <h2 className="mt-3 font-display text-4xl uppercase tracking-[0.05em] sm:text-5xl">Common Questions</h2>
+            </div>
+            <div className="space-y-4">
+              {faqs.map((item) => (
+                <details key={item.question} className="border border-stone-300 bg-stone-50 p-5">
+                  <summary className="cursor-pointer font-display text-xl uppercase tracking-[0.05em] text-stone-900">
+                    {item.question}
+                  </summary>
+                  <p className="mt-3 text-stone-700">{item.answer}</p>
+                </details>
+              ))}
             </div>
           </div>
         </section>
