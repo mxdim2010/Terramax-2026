@@ -1,6 +1,6 @@
 "use client"
 
-import { FormEvent, useMemo, useState } from "react"
+import { FormEvent, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 
 import { Badge } from "@/components/ui/badge"
@@ -8,15 +8,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import type { DesignConcept, DesignRequest } from "@/lib/interior-design-engine"
 
-type DesignResponse = {
-  success: boolean
-  summary?: string
-  layoutPlan?: string[]
-  furniturePlan?: string[]
-  decorationPlan?: string[]
-  nextSteps?: string[]
-  message?: string
+type DesignResponse =
+  | ({ success: true } & DesignConcept)
+  | { success: false; message: string }
+
+type StoredProject = {
+  id: string
+  projectName: string
+  request: DesignRequest
+  concept: DesignConcept
+  createdAt: string
+  updatedAt: string
 }
 
 const roomTypes = ["Living Room", "Bedroom", "Kitchen", "Bathroom", "Home Office", "Dining Room"]
@@ -34,8 +38,20 @@ export default function InteriorDesignHelperPage() {
   const [priorities, setPriorities] = useState("")
   const [floorPlanFileName, setFloorPlanFileName] = useState("")
   const [photoFileNames, setPhotoFileNames] = useState<string[]>([])
+  const [projectName, setProjectName] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [result, setResult] = useState<DesignResponse | null>(null)
+  const [lastRequest, setLastRequest] = useState<DesignRequest | null>(null)
+  const [projects, setProjects] = useState<StoredProject[]>([])
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null)
+  const [statusMessage, setStatusMessage] = useState<string>("")
+
+  const [handoffName, setHandoffName] = useState("")
+  const [handoffEmail, setHandoffEmail] = useState("")
+  const [handoffPhone, setHandoffPhone] = useState("")
+  const [handoffMessage, setHandoffMessage] = useState("")
+  const [handoffSubmitting, setHandoffSubmitting] = useState(false)
 
   const areaPreview = useMemo(() => {
     const w = Number.parseFloat(width)
@@ -48,10 +64,67 @@ export default function InteriorDesignHelperPage() {
     return (w * l).toFixed(1)
   }, [width, length])
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const loadProjects = async () => {
+    try {
+      const response = await fetch("/api/interior-design-helper/projects")
+      const data = (await response.json()) as {
+        success: boolean
+        projects?: StoredProject[]
+      }
+
+      if (data.success && data.projects) {
+        setProjects(data.projects)
+      }
+    } catch {
+      setStatusMessage("Could not load saved projects.")
+    }
+  }
+
+  useEffect(() => {
+    void loadProjects()
+  }, [])
+
+  const currentRequest: DesignRequest = {
+    roomType,
+    style,
+    budget,
+    width,
+    length,
+    ceilingHeight,
+    household,
+    priorities,
+    floorPlanFileName,
+    photoFileNames,
+  }
+
+  const applyProjectToForm = (project: StoredProject) => {
+    setRoomType(project.request.roomType)
+    setStyle(project.request.style)
+    setBudget(project.request.budget)
+    setWidth(project.request.width)
+    setLength(project.request.length)
+    setCeilingHeight(project.request.ceilingHeight ?? "")
+    setHousehold(project.request.household ?? "")
+    setPriorities(project.request.priorities ?? "")
+    setFloorPlanFileName(project.request.floorPlanFileName ?? "")
+    setPhotoFileNames(project.request.photoFileNames ?? [])
+    setProjectName(project.projectName)
+
+    setResult({
+      success: true,
+      ...project.concept,
+    })
+
+    setLastRequest(project.request)
+    setActiveProjectId(project.id)
+    setStatusMessage(`Loaded project: ${project.projectName}`)
+  }
+
+  const handleGenerate = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
     setResult(null)
+    setStatusMessage("")
 
     try {
       const response = await fetch("/api/interior-design-helper", {
@@ -59,20 +132,15 @@ export default function InteriorDesignHelperPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          roomType,
-          style,
-          budget,
-          width,
-          length,
-          ceilingHeight,
-          household,
-          priorities,
-        }),
+        body: JSON.stringify(currentRequest),
       })
 
       const data = (await response.json()) as DesignResponse
       setResult(data)
+      if (data.success) {
+        setLastRequest(currentRequest)
+        setStatusMessage("Concept generated. Save it to keep this version.")
+      }
     } catch {
       setResult({
         success: false,
@@ -80,6 +148,106 @@ export default function InteriorDesignHelperPage() {
       })
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleSaveProject = async () => {
+    if (!result?.success || !lastRequest) {
+      setStatusMessage("Generate a concept first, then save the project.")
+      return
+    }
+
+    setIsSaving(true)
+    setStatusMessage("")
+
+    try {
+      const response = await fetch("/api/interior-design-helper/projects", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectName: projectName.trim() || `${roomType} concept`,
+          request: lastRequest,
+          concept: result,
+        }),
+      })
+
+      const data = (await response.json()) as {
+        success: boolean
+        message?: string
+        project?: StoredProject
+      }
+
+      if (!data.success || !data.project) {
+        setStatusMessage(data.message ?? "Could not save project.")
+        return
+      }
+
+      setActiveProjectId(data.project.id)
+      setProjectName(data.project.projectName)
+      setStatusMessage("Project saved.")
+      await loadProjects()
+    } catch {
+      setStatusMessage("Could not save project.")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleDownloadBrief = () => {
+    if (!activeProjectId) {
+      setStatusMessage("Save a project first to download a PDF brief.")
+      return
+    }
+
+    window.open(`/api/interior-design-helper/projects/${activeProjectId}/brief`, "_blank", "noopener,noreferrer")
+  }
+
+  const handleDesignerHandoff = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    if (!activeProjectId) {
+      setStatusMessage("Save a project before requesting designer handoff.")
+      return
+    }
+
+    setHandoffSubmitting(true)
+
+    try {
+      const response = await fetch("/api/interior-design-helper/handoff", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectId: activeProjectId,
+          name: handoffName,
+          email: handoffEmail,
+          phone: handoffPhone,
+          message: handoffMessage,
+        }),
+      })
+
+      const data = (await response.json()) as {
+        success: boolean
+        message?: string
+      }
+
+      if (!data.success) {
+        setStatusMessage(data.message ?? "Handoff request failed.")
+        return
+      }
+
+      setStatusMessage("Designer handoff request submitted.")
+      setHandoffName("")
+      setHandoffEmail("")
+      setHandoffPhone("")
+      setHandoffMessage("")
+    } catch {
+      setStatusMessage("Handoff request failed.")
+    } finally {
+      setHandoffSubmitting(false)
     }
   }
 
@@ -98,32 +266,20 @@ export default function InteriorDesignHelperPage() {
         <section>
           <h1 className="font-display text-4xl uppercase tracking-[0.06em] sm:text-5xl">Interior Design Helper</h1>
           <p className="mt-4 max-w-2xl text-stone-700">
-            Upload your floor plan, add room measurements, and share photos. This MVP skeleton returns a practical layout,
-            furniture, and styling direction you can iterate with a designer.
+            Save room concepts, run fit checks, generate a downloadable brief, and hand your project to a TerraMax designer.
           </p>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            <Card className="rounded-none border-stone-300 bg-white">
-              <CardContent className="p-4">
-                <p className="text-xs uppercase tracking-[0.14em] text-stone-500">Step 1</p>
-                <p className="mt-2 text-sm text-stone-700">Upload plan + photos</p>
-              </CardContent>
-            </Card>
-            <Card className="rounded-none border-stone-300 bg-white">
-              <CardContent className="p-4">
-                <p className="text-xs uppercase tracking-[0.14em] text-stone-500">Step 2</p>
-                <p className="mt-2 text-sm text-stone-700">Set style + budget</p>
-              </CardContent>
-            </Card>
-            <Card className="rounded-none border-stone-300 bg-white">
-              <CardContent className="p-4">
-                <p className="text-xs uppercase tracking-[0.14em] text-stone-500">Step 3</p>
-                <p className="mt-2 text-sm text-stone-700">Get actionable concept</p>
-              </CardContent>
-            </Card>
-          </div>
+          <form onSubmit={handleGenerate} className="mt-8 space-y-5 border border-stone-300 bg-white p-6 sm:p-7">
+            <div>
+              <label className="mb-2 block text-xs uppercase tracking-[0.14em] text-stone-600">Project Name</label>
+              <Input
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                placeholder="e.g. Open Plan Family Living Refresh"
+                className="rounded-none"
+              />
+            </div>
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-5 border border-stone-300 bg-white p-6 sm:p-7">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-2 block text-xs uppercase tracking-[0.14em] text-stone-600">Room Type</label>
@@ -244,6 +400,27 @@ export default function InteriorDesignHelperPage() {
             <Button type="submit" disabled={isSubmitting} className="w-full rounded-none bg-stone-900 py-6 text-sm uppercase tracking-[0.14em] hover:bg-stone-800">
               {isSubmitting ? "Generating Concept..." : "Generate Design Concept"}
             </Button>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Button
+                type="button"
+                onClick={handleSaveProject}
+                disabled={isSaving || !result?.success}
+                className="rounded-none border border-stone-300 bg-white text-stone-900 hover:bg-stone-100"
+              >
+                {isSaving ? "Saving..." : "Save Project"}
+              </Button>
+              <Button
+                type="button"
+                onClick={handleDownloadBrief}
+                disabled={!activeProjectId}
+                className="rounded-none border border-stone-300 bg-white text-stone-900 hover:bg-stone-100"
+              >
+                Download PDF Brief
+              </Button>
+            </div>
+
+            {statusMessage && <p className="text-sm text-stone-700">{statusMessage}</p>}
           </form>
         </section>
 
@@ -270,7 +447,7 @@ export default function InteriorDesignHelperPage() {
                   <div>
                     <h3 className="font-display text-xl uppercase tracking-[0.05em]">Layout Plan</h3>
                     <ul className="mt-2 space-y-2 text-sm text-stone-700">
-                      {result.layoutPlan?.map((item) => (
+                      {result.layoutPlan.map((item) => (
                         <li key={item}>- {item}</li>
                       ))}
                     </ul>
@@ -279,7 +456,29 @@ export default function InteriorDesignHelperPage() {
                   <div>
                     <h3 className="font-display text-xl uppercase tracking-[0.05em]">Furniture Direction</h3>
                     <ul className="mt-2 space-y-2 text-sm text-stone-700">
-                      {result.furniturePlan?.map((item) => (
+                      {result.furniturePlan.map((item) => (
+                        <li key={item}>- {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="font-display text-xl uppercase tracking-[0.05em]">Fit Validator</h3>
+                    {result.fitWarnings.length === 0 ? (
+                      <p className="mt-2 text-sm text-stone-700">No major fit risks detected for current dimensions.</p>
+                    ) : (
+                      <ul className="mt-2 space-y-2 text-sm text-stone-700">
+                        {result.fitWarnings.map((item) => (
+                          <li key={item}>- {item}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  <div>
+                    <h3 className="font-display text-xl uppercase tracking-[0.05em]">Image Analysis Notes</h3>
+                    <ul className="mt-2 space-y-2 text-sm text-stone-700">
+                      {result.imageInsights.map((item) => (
                         <li key={item}>- {item}</li>
                       ))}
                     </ul>
@@ -288,7 +487,7 @@ export default function InteriorDesignHelperPage() {
                   <div>
                     <h3 className="font-display text-xl uppercase tracking-[0.05em]">Decoration Notes</h3>
                     <ul className="mt-2 space-y-2 text-sm text-stone-700">
-                      {result.decorationPlan?.map((item) => (
+                      {result.decorationPlan.map((item) => (
                         <li key={item}>- {item}</li>
                       ))}
                     </ul>
@@ -297,7 +496,7 @@ export default function InteriorDesignHelperPage() {
                   <div>
                     <h3 className="font-display text-xl uppercase tracking-[0.05em]">Next Steps</h3>
                     <ul className="mt-2 space-y-2 text-sm text-stone-700">
-                      {result.nextSteps?.map((item) => (
+                      {result.nextSteps.map((item) => (
                         <li key={item}>- {item}</li>
                       ))}
                     </ul>
@@ -307,15 +506,72 @@ export default function InteriorDesignHelperPage() {
             </CardContent>
           </Card>
 
+          <Card className="mt-5 rounded-none border-stone-300 bg-white">
+            <CardContent className="space-y-4 p-6">
+              <p className="text-xs uppercase tracking-[0.14em] text-stone-500">Saved Projects</p>
+              {projects.length === 0 && <p className="text-sm text-stone-600">No saved projects yet.</p>}
+              <div className="space-y-3">
+                {projects.map((project) => (
+                  <button
+                    key={project.id}
+                    type="button"
+                    onClick={() => applyProjectToForm(project)}
+                    className="w-full border border-stone-300 px-3 py-3 text-left text-sm hover:bg-stone-100"
+                  >
+                    <p className="font-semibold text-stone-900">{project.projectName}</p>
+                    <p className="text-xs text-stone-500">
+                      {project.request.roomType} | {new Date(project.createdAt).toLocaleDateString()}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="mt-5 rounded-none border-stone-300 bg-stone-900 text-stone-100">
-            <CardContent className="space-y-3 p-6">
-              <p className="text-xs uppercase tracking-[0.14em] text-amber-400">What We Learned from Top Tools</p>
-              <ul className="space-y-2 text-sm text-stone-200">
-                <li>- Keep onboarding in simple steps: Upload, Define style, Generate.</li>
-                <li>- Show practical output, not only inspiration imagery.</li>
-                <li>- Let users iterate quickly with budget and layout constraints.</li>
-                <li>- Combine AI concepting with optional human designer handoff.</li>
-              </ul>
+            <CardContent className="space-y-4 p-6">
+              <p className="text-xs uppercase tracking-[0.14em] text-amber-400">Designer Handoff</p>
+              <p className="text-sm text-stone-200">
+                Move from AI concept to execution with a TerraMax interior designer.
+              </p>
+
+              <form onSubmit={handleDesignerHandoff} className="space-y-3">
+                <Input
+                  value={handoffName}
+                  onChange={(e) => setHandoffName(e.target.value)}
+                  placeholder="Your name"
+                  className="rounded-none border-stone-600 bg-stone-800 text-stone-100"
+                  required
+                />
+                <Input
+                  type="email"
+                  value={handoffEmail}
+                  onChange={(e) => setHandoffEmail(e.target.value)}
+                  placeholder="Email"
+                  className="rounded-none border-stone-600 bg-stone-800 text-stone-100"
+                  required
+                />
+                <Input
+                  value={handoffPhone}
+                  onChange={(e) => setHandoffPhone(e.target.value)}
+                  placeholder="Phone (optional)"
+                  className="rounded-none border-stone-600 bg-stone-800 text-stone-100"
+                />
+                <Textarea
+                  value={handoffMessage}
+                  onChange={(e) => setHandoffMessage(e.target.value)}
+                  placeholder="Anything your designer should know"
+                  rows={3}
+                  className="rounded-none border-stone-600 bg-stone-800 text-stone-100"
+                />
+                <Button
+                  type="submit"
+                  disabled={handoffSubmitting || !activeProjectId}
+                  className="w-full rounded-none bg-amber-500 text-stone-900 hover:bg-amber-400"
+                >
+                  {handoffSubmitting ? "Submitting..." : "Request Designer Review"}
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </section>
