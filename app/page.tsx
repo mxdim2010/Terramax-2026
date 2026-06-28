@@ -158,7 +158,18 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-100 text-stone-900">
+    <div className="relative isolate min-h-screen bg-stone-100 text-stone-900">
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <Image
+          src="/images/hero-house.jpg"
+          alt=""
+          fill
+          priority
+          className="object-cover opacity-[0.14]"
+        />
+        <div className="absolute inset-0 bg-stone-100/86" />
+      </div>
+
       <header className="sticky top-0 z-50 border-b border-stone-300/70 bg-stone-100/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link href="#" className="group flex items-center gap-3">
