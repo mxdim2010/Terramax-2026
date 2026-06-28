@@ -13,7 +13,6 @@ import {
   Mail,
   Menu,
   Phone,
-  PoundSterling,
   ShieldCheck,
   Sparkles,
   TrendingUp,
@@ -280,14 +279,15 @@ export default function HomePage() {
 
       <header className="sticky top-0 z-50 border-b border-stone-300/70 bg-stone-100/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <Link href="#" className="group flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-sm bg-amber-500 text-stone-950 shadow-[0_0_0_1px_rgba(24,24,24,0.2)]">
-              <PoundSterling className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="font-display text-lg uppercase leading-none tracking-[0.12em]">TerraMax</p>
-              <p className="text-xs uppercase tracking-[0.2em] text-stone-600">Developments</p>
-            </div>
+          <Link href="#" className="group flex items-center">
+            <Image
+              src="/images/terramax-logo.png"
+              alt="TerraMax Developments logo"
+              width={420}
+              height={120}
+              priority
+              className="h-12 w-auto object-contain sm:h-14"
+            />
           </Link>
 
           <nav className="hidden items-center gap-8 text-sm uppercase tracking-[0.14em] md:flex">
@@ -802,7 +802,13 @@ export default function HomePage() {
       <footer className="border-t border-stone-300 bg-stone-950 py-10 text-stone-300">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
           <div>
-            <p className="font-display text-2xl uppercase tracking-[0.08em] text-white">TerraMax Developments</p>
+            <Image
+              src="/images/terramax-logo.png"
+              alt="TerraMax Developments logo"
+              width={420}
+              height={120}
+              className="h-12 w-auto object-contain"
+            />
             <p className="mt-2 text-sm text-stone-400">Transforming properties and communities through disciplined renovation.</p>
           </div>
           <div className="space-y-1 text-sm md:text-right">
