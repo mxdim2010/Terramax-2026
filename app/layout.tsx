@@ -7,7 +7,7 @@ const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-display" })
 
 export const metadata: Metadata = {
   title: "Terramax Developments",
-  description: "Terramax Developments builds fast, conversion-focused digital products.",
+  description: "Terramax Developments buys, renovates, and delivers quality residential properties.",
 }
 
 export default function RootLayout({
