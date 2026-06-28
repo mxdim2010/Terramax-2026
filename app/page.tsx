@@ -291,6 +291,9 @@ export default function HomePage() {
           </Link>
 
           <nav className="hidden items-center gap-8 text-sm uppercase tracking-[0.14em] md:flex">
+            <Link className="hover:text-amber-700" href="/interior-design-helper">
+              Interior Design Helper
+            </Link>
             <Link className="hover:text-amber-700" href="#services">
               Services
             </Link>
@@ -324,6 +327,9 @@ export default function HomePage() {
         {isMenuOpen && (
           <div className="border-t border-stone-300 bg-stone-100 md:hidden">
             <div className="space-y-1 px-4 py-4 text-sm uppercase tracking-[0.14em]">
+              <Link className="block py-2" href="/interior-design-helper" onClick={() => setIsMenuOpen(false)}>
+                Interior Design Helper
+              </Link>
               <Link className="block py-2" href="#services" onClick={() => setIsMenuOpen(false)}>
                 Services
               </Link>
