@@ -42,6 +42,7 @@ export default function InteriorDesignHelperPage() {
   const [household, setHousehold] = useState("")
   const [priorities, setPriorities] = useState("")
   const [floorPlanFileName, setFloorPlanFileName] = useState("")
+  const [floorPlanImageDataUrl, setFloorPlanImageDataUrl] = useState("")
   const [photoFileNames, setPhotoFileNames] = useState<string[]>([])
   const [projectName, setProjectName] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -99,6 +100,7 @@ export default function InteriorDesignHelperPage() {
     household,
     priorities,
     floorPlanFileName,
+    floorPlanImageDataUrl,
     photoFileNames,
   }
 
@@ -112,6 +114,7 @@ export default function InteriorDesignHelperPage() {
     setHousehold(project.request.household ?? "")
     setPriorities(project.request.priorities ?? "")
     setFloorPlanFileName(project.request.floorPlanFileName ?? "")
+    setFloorPlanImageDataUrl(project.request.floorPlanImageDataUrl ?? "")
     setPhotoFileNames(project.request.photoFileNames ?? [])
     setProjectName(project.projectName)
 
@@ -373,10 +376,37 @@ export default function InteriorDesignHelperPage() {
               <input
                 type="file"
                 accept=".pdf,.png,.jpg,.jpeg"
-                onChange={(e) => setFloorPlanFileName(e.target.files?.[0]?.name ?? "")}
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (!file) {
+                    setFloorPlanFileName("")
+                    setFloorPlanImageDataUrl("")
+                    return
+                  }
+
+                  setFloorPlanFileName(file.name)
+
+                  if (file.type.startsWith("image/")) {
+                    const reader = new FileReader()
+                    reader.onload = () => {
+                      const result = reader.result
+                      if (typeof result === "string") {
+                        setFloorPlanImageDataUrl(result)
+                      }
+                    }
+                    reader.readAsDataURL(file)
+                  } else {
+                    setFloorPlanImageDataUrl("")
+                  }
+                }}
                 className="block w-full rounded-none border border-stone-300 bg-white p-2 text-sm"
               />
               {floorPlanFileName && <p className="mt-2 text-xs text-stone-500">Selected: {floorPlanFileName}</p>}
+              {floorPlanFileName.endsWith(".pdf") && (
+                <p className="mt-1 text-xs text-amber-700">
+                  PDF detected: upload JPG/PNG for floor-plan visual overlay rendering.
+                </p>
+              )}
             </div>
 
             <div>
@@ -484,6 +514,11 @@ export default function InteriorDesignHelperPage() {
                           Download SVG
                         </Button>
                       </div>
+                      <p className="mt-2 text-xs text-stone-600">
+                        {floorPlanImageDataUrl
+                          ? "Overlay mode: generated layout is rendered on top of your uploaded floor plan image."
+                          : "No floor-plan image provided: using inferred room geometry from dimensions."}
+                      </p>
                       <div className="mt-3 border border-stone-300 bg-stone-50 p-3">
                         <Image
                           src={toSvgDataUrl(result.layoutSketchSvg)}

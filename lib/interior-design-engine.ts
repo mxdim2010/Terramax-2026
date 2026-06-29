@@ -8,6 +8,7 @@ export type DesignRequest = {
   household?: string
   priorities?: string
   floorPlanFileName?: string
+  floorPlanImageDataUrl?: string
   photoFileNames?: string[]
 }
 
@@ -165,7 +166,7 @@ function analyzeImageHints(files: string[]) {
 
 function generateLayoutSketchSvg(roomType: string, style: string, width: number, length: number) {
   const canvas = 560
-  const margin = 60
+  const margin = 52
   const interior = canvas - margin * 2
   const maxSide = Math.max(width, length)
   const roomW = Math.round((width / maxSide) * interior)
@@ -181,6 +182,8 @@ function generateLayoutSketchSvg(roomType: string, style: string, width: number,
     furniture: "#d7d0bf",
     furnitureStroke: "#5a554a",
     rug: "#e7dfcc",
+    path: "#6f8f6f",
+    zone: "#f1e5c8",
   }
 
   const items: string[] = []
@@ -259,13 +262,83 @@ function generateLayoutSketchSvg(roomType: string, style: string, width: number,
   return `
 <svg xmlns="http://www.w3.org/2000/svg" width="${canvas}" height="${canvas}" viewBox="0 0 ${canvas} ${canvas}" role="img" aria-label="Suggested ${roomType.toLowerCase()} layout sketch">
   <rect width="100%" height="100%" fill="${palette.bg}" />
+  <defs>
+    <pattern id="grid" width="16" height="16" patternUnits="userSpaceOnUse">
+      <path d="M 16 0 L 0 0 0 16" fill="none" stroke="#e9e4d7" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="18" y="18" width="${canvas - 36}" height="${canvas - 36}" fill="url(#grid)" />
   <rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" fill="#fffdf8" stroke="${palette.wall}" stroke-width="4" />
+  <rect x="${roomX + 8}" y="${roomY + 8}" width="${Math.max(1, roomW - 16)}" height="${Math.max(1, roomH - 16)}" fill="${palette.zone}" opacity="0.2" />
   ${items.join("\n  ")}
+  <path d="M ${doorX + 10} ${doorY - 20} Q ${canvas / 2} ${roomY + roomH / 2} ${canvas - 96} ${roomY + 56}" stroke="${palette.path}" stroke-width="2" stroke-dasharray="6 4" fill="none" opacity="0.85"/>
   <line x1="${doorX}" y1="${doorY}" x2="${doorX + doorW}" y2="${doorY}" stroke="#f6f4ef" stroke-width="5" />
   <path d="M ${doorX} ${doorY} A ${doorW} ${doorW} 0 0 0 ${doorX + doorW} ${doorY - doorW}" fill="none" stroke="#8a826f" stroke-width="1.5" stroke-dasharray="3 2" />
-  <text x="${canvas / 2}" y="30" text-anchor="middle" font-size="16" fill="${palette.text}" font-family="Arial, sans-serif">Suggested ${roomType} Layout</text>
+  <text x="${canvas / 2}" y="32" text-anchor="middle" font-size="16" fill="${palette.text}" font-family="Arial, sans-serif">Suggested ${roomType} Layout</text>
   <text x="${canvas / 2}" y="${canvas - 24}" text-anchor="middle" font-size="12" fill="#5a5448" font-family="Arial, sans-serif">${width.toFixed(1)}m x ${length.toFixed(1)}m | ${style} style direction</text>
+  <text x="36" y="${canvas - 44}" font-size="10" fill="#6a6356" font-family="Arial, sans-serif">Dashed green line = suggested circulation path</text>
   <text x="${doorX + doorW / 2}" y="${doorY - doorW - 6}" text-anchor="middle" font-size="10" fill="#5a5448" font-family="Arial, sans-serif">ENTRY</text>
+</svg>`.trim()
+}
+
+function generateFloorPlanAwareLayoutSketchSvg(
+  roomType: string,
+  style: string,
+  width: number,
+  length: number,
+  floorPlanImageDataUrl?: string,
+) {
+  if (!floorPlanImageDataUrl) {
+    return generateLayoutSketchSvg(roomType, style, width, length)
+  }
+
+  const canvas = 640
+  const margin = 44
+  const roomX = margin
+  const roomY = margin + 10
+  const roomW = canvas - margin * 2
+  const roomH = canvas - margin * 2 - 20
+
+  const overlayParts: string[] = []
+
+  if (roomType === "Living Room") {
+    overlayParts.push(`<rect x="${roomX + 120}" y="${roomY + roomH - 110}" width="${roomW - 240}" height="74" rx="12" fill="#d8ceb6" stroke="#4d473d" stroke-width="3" opacity="0.92"/>`)
+    overlayParts.push(`<rect x="${roomX + roomW / 2 - 56}" y="${roomY + roomH / 2 - 22}" width="112" height="54" rx="8" fill="#f0e6cf" stroke="#4d473d" stroke-width="3" opacity="0.95"/>`)
+    overlayParts.push(`<rect x="${roomX + roomW / 2 - 72}" y="${roomY + 18}" width="144" height="20" rx="3" fill="#c9bea5" stroke="#4d473d" stroke-width="2" opacity="0.92"/>`)
+  } else if (roomType === "Bedroom") {
+    overlayParts.push(`<rect x="${roomX + roomW / 2 - 110}" y="${roomY + roomH / 2 - 94}" width="220" height="188" rx="12" fill="#d8ceb6" stroke="#4d473d" stroke-width="3" opacity="0.92"/>`)
+    overlayParts.push(`<rect x="${roomX + roomW / 2 - 88}" y="${roomY + roomH / 2 - 78}" width="176" height="56" fill="#ece1ca" stroke="#9f9377" stroke-width="2" opacity="0.95"/>`)
+    overlayParts.push(`<rect x="${roomX + roomW - 82}" y="${roomY + 24}" width="46" height="170" fill="#cbc0a8" stroke="#4d473d" stroke-width="2" opacity="0.92"/>`)
+  } else if (roomType === "Kitchen") {
+    overlayParts.push(`<rect x="${roomX + 16}" y="${roomY + 16}" width="188" height="34" fill="#cbc0a8" stroke="#4d473d" stroke-width="3" opacity="0.92"/>`)
+    overlayParts.push(`<rect x="${roomX + 16}" y="${roomY + 56}" width="34" height="200" fill="#cbc0a8" stroke="#4d473d" stroke-width="3" opacity="0.92"/>`)
+    overlayParts.push(`<rect x="${roomX + roomW - 204}" y="${roomY + roomH - 50}" width="188" height="34" fill="#cbc0a8" stroke="#4d473d" stroke-width="3" opacity="0.92"/>`)
+    overlayParts.push(`<rect x="${roomX + roomW / 2 - 92}" y="${roomY + roomH / 2 - 34}" width="184" height="68" rx="8" fill="#e9dec6" stroke="#4d473d" stroke-width="3" opacity="0.95"/>`)
+  } else {
+    overlayParts.push(`<rect x="${roomX + 24}" y="${roomY + 24}" width="230" height="116" fill="#d8ceb6" stroke="#4d473d" stroke-width="3" opacity="0.9"/>`)
+    overlayParts.push(`<rect x="${roomX + roomW - 254}" y="${roomY + roomH - 140}" width="230" height="116" fill="#d8ceb6" stroke="#4d473d" stroke-width="3" opacity="0.9"/>`)
+  }
+
+  const doorW = 74
+  const doorX = roomX + roomW / 2 - doorW / 2
+  const doorY = roomY + roomH - 1
+
+  return `
+<svg xmlns="http://www.w3.org/2000/svg" width="${canvas}" height="${canvas}" viewBox="0 0 ${canvas} ${canvas}" role="img" aria-label="Suggested ${roomType.toLowerCase()} layout over uploaded floor plan">
+  <defs>
+    <clipPath id="roomClip"><rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" rx="2"/></clipPath>
+  </defs>
+  <rect width="100%" height="100%" fill="#f4f0e6"/>
+  <rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" fill="#fbf8ef" stroke="#3f3a30" stroke-width="4"/>
+  <image href="${floorPlanImageDataUrl}" x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" preserveAspectRatio="xMidYMid meet" clip-path="url(#roomClip)" opacity="0.78"/>
+  <rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" fill="#f8f3e7" opacity="0.18"/>
+  ${overlayParts.join("\n  ")}
+  <path d="M ${roomX + 40} ${roomY + roomH - 24} Q ${roomX + roomW / 2} ${roomY + roomH / 2} ${roomX + roomW - 40} ${roomY + 72}" stroke="#5a8358" stroke-width="3" stroke-dasharray="7 5" fill="none"/>
+  <line x1="${doorX}" y1="${doorY}" x2="${doorX + doorW}" y2="${doorY}" stroke="#f4f0e6" stroke-width="6" />
+  <path d="M ${doorX} ${doorY} A ${doorW} ${doorW} 0 0 0 ${doorX + doorW} ${doorY - doorW}" fill="none" stroke="#8a826f" stroke-width="1.5" stroke-dasharray="3 2" />
+  <rect x="24" y="20" width="${canvas - 48}" height="30" fill="#1f1f1f" opacity="0.9"/>
+  <text x="${canvas / 2}" y="40" text-anchor="middle" font-size="14" fill="#f4f0e6" font-family="Arial, sans-serif">Floor-Plan Overlay | ${roomType} | ${style} | ${width.toFixed(1)}m x ${length.toFixed(1)}m</text>
+  <text x="${roomX + 8}" y="${roomY + roomH + 20}" font-size="10" fill="#645d4f" font-family="Arial, sans-serif">Overlay is aligned to uploaded plan bounds and shows placement + circulation suggestions.</text>
 </svg>`.trim()
 }
 
@@ -282,7 +355,13 @@ export function generateDesignConcept(input: DesignRequest): DesignConcept {
   return {
     summary: `${input.style} ${input.roomType.toLowerCase()} concept for approximately ${area.toFixed(1)} m2.`,
     layoutPlan: layoutTips(input.roomType, width, length),
-    layoutSketchSvg: generateLayoutSketchSvg(input.roomType, input.style, width, length),
+    layoutSketchSvg: generateFloorPlanAwareLayoutSketchSvg(
+      input.roomType,
+      input.style,
+      width,
+      length,
+      input.floorPlanImageDataUrl,
+    ),
     furniturePlan: furnitureIdeas(input.roomType, input.budget),
     decorationPlan: [
       `Base palette: keep 70% neutral tones, 20% ${input.style.toLowerCase()}-aligned textures, and 10% accent color.`,
