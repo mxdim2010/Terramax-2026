@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -26,6 +27,10 @@ type StoredProject = {
 const roomTypes = ["Living Room", "Bedroom", "Kitchen", "Bathroom", "Home Office", "Dining Room"]
 const styles = ["Modern", "Scandinavian", "Industrial", "Contemporary", "Classic", "Minimalist"]
 const budgets = ["Under GBP 3,000", "GBP 3,000-7,000", "GBP 7,000-12,000", "GBP 12,000+"]
+
+function toSvgDataUrl(svg: string) {
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+}
 
 export default function InteriorDesignHelperPage() {
   const [roomType, setRoomType] = useState(roomTypes[0])
@@ -251,6 +256,20 @@ export default function InteriorDesignHelperPage() {
     }
   }
 
+  const handleDownloadLayoutImage = () => {
+    if (!result?.success || !result.layoutSketchSvg) {
+      setStatusMessage("Generate a concept first to download the layout image.")
+      return
+    }
+
+    const blob = new Blob([result.layoutSketchSvg], { type: "image/svg+xml" })
+    const link = document.createElement("a")
+    link.href = URL.createObjectURL(blob)
+    link.download = `${(projectName || roomType || "layout-sketch").toLowerCase().replace(/[^a-z0-9]+/g, "-")}.svg`
+    link.click()
+    URL.revokeObjectURL(link.href)
+  }
+
   return (
     <div className="min-h-screen bg-stone-100 text-stone-900">
       <header className="border-b border-stone-300 bg-stone-100/95 backdrop-blur">
@@ -452,6 +471,31 @@ export default function InteriorDesignHelperPage() {
                       ))}
                     </ul>
                   </div>
+
+                  {result.layoutSketchSvg && (
+                    <div>
+                      <div className="flex items-center justify-between gap-3">
+                        <h3 className="font-display text-xl uppercase tracking-[0.05em]">Suggested Layout Image</h3>
+                        <Button
+                          type="button"
+                          onClick={handleDownloadLayoutImage}
+                          className="rounded-none border border-stone-300 bg-white text-stone-900 hover:bg-stone-100"
+                        >
+                          Download SVG
+                        </Button>
+                      </div>
+                      <div className="mt-3 border border-stone-300 bg-stone-50 p-3">
+                        <Image
+                          src={toSvgDataUrl(result.layoutSketchSvg)}
+                          alt="Suggested room layout sketch"
+                          width={560}
+                          height={560}
+                          unoptimized
+                          className="h-auto w-full"
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   <div>
                     <h3 className="font-display text-xl uppercase tracking-[0.05em]">Furniture Direction</h3>

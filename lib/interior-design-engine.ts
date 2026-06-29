@@ -14,6 +14,7 @@ export type DesignRequest = {
 export type DesignConcept = {
   summary: string
   layoutPlan: string[]
+  layoutSketchSvg?: string
   furniturePlan: string[]
   decorationPlan: string[]
   fitWarnings: string[]
@@ -162,6 +163,112 @@ function analyzeImageHints(files: string[]) {
   return insights
 }
 
+function generateLayoutSketchSvg(roomType: string, style: string, width: number, length: number) {
+  const canvas = 560
+  const margin = 60
+  const interior = canvas - margin * 2
+  const maxSide = Math.max(width, length)
+  const roomW = Math.round((width / maxSide) * interior)
+  const roomH = Math.round((length / maxSide) * interior)
+  const roomX = Math.round((canvas - roomW) / 2)
+  const roomY = Math.round((canvas - roomH) / 2)
+
+  const palette = {
+    bg: "#f6f4ef",
+    wall: "#3b3b3b",
+    text: "#2a2a2a",
+    accent: "#b8860b",
+    furniture: "#d7d0bf",
+    furnitureStroke: "#5a554a",
+    rug: "#e7dfcc",
+  }
+
+  const items: string[] = []
+
+  if (roomType === "Living Room") {
+    const sofaW = Math.max(110, Math.round(roomW * 0.42))
+    const sofaH = Math.max(34, Math.round(roomH * 0.16))
+    const sofaX = roomX + Math.round((roomW - sofaW) / 2)
+    const sofaY = roomY + roomH - sofaH - 18
+
+    const mediaW = Math.max(90, Math.round(roomW * 0.36))
+    const mediaH = 20
+    const mediaX = roomX + Math.round((roomW - mediaW) / 2)
+    const mediaY = roomY + 14
+
+    const rugW = Math.max(120, Math.round(roomW * 0.52))
+    const rugH = Math.max(70, Math.round(roomH * 0.34))
+    const rugX = roomX + Math.round((roomW - rugW) / 2)
+    const rugY = roomY + Math.round((roomH - rugH) / 2)
+
+    const tableW = Math.max(64, Math.round(roomW * 0.2))
+    const tableH = Math.max(42, Math.round(roomH * 0.16))
+    const tableX = roomX + Math.round((roomW - tableW) / 2)
+    const tableY = rugY + Math.round((rugH - tableH) / 2)
+
+    items.push(`<rect x="${rugX}" y="${rugY}" width="${rugW}" height="${rugH}" fill="${palette.rug}" stroke="#cfc6b0" stroke-width="1"/>`)
+    items.push(`<rect x="${sofaX}" y="${sofaY}" width="${sofaW}" height="${sofaH}" rx="8" fill="${palette.furniture}" stroke="${palette.furnitureStroke}" stroke-width="2"/>`)
+    items.push(`<rect x="${mediaX}" y="${mediaY}" width="${mediaW}" height="${mediaH}" rx="3" fill="#d0c8b4" stroke="${palette.furnitureStroke}" stroke-width="2"/>`)
+    items.push(`<rect x="${tableX}" y="${tableY}" width="${tableW}" height="${tableH}" rx="6" fill="#eee6d2" stroke="${palette.furnitureStroke}" stroke-width="2"/>`)
+    items.push(`<text x="${sofaX + sofaW / 2}" y="${sofaY + sofaH / 2 + 5}" text-anchor="middle" font-size="12" fill="${palette.text}">SOFA</text>`)
+  } else if (roomType === "Bedroom") {
+    const bedW = Math.max(120, Math.round(roomW * 0.46))
+    const bedH = Math.max(110, Math.round(roomH * 0.44))
+    const bedX = roomX + Math.round((roomW - bedW) / 2)
+    const bedY = roomY + Math.round((roomH - bedH) / 2) + 12
+
+    const sideW = 26
+    const sideH = 34
+    const leftX = bedX - sideW - 8
+    const rightX = bedX + bedW + 8
+    const sideY = bedY + Math.round((bedH - sideH) / 2)
+
+    const wardrobeW = Math.max(40, Math.round(roomW * 0.14))
+    const wardrobeH = Math.max(90, Math.round(roomH * 0.42))
+    const wardrobeX = roomX + roomW - wardrobeW - 12
+    const wardrobeY = roomY + 16
+
+    items.push(`<rect x="${bedX}" y="${bedY}" width="${bedW}" height="${bedH}" rx="8" fill="${palette.furniture}" stroke="${palette.furnitureStroke}" stroke-width="2"/>`)
+    items.push(`<rect x="${bedX + 10}" y="${bedY + 8}" width="${bedW - 20}" height="${Math.round(bedH * 0.26)}" fill="#ece3cd" stroke="#b9ad91" stroke-width="1"/>`)
+    items.push(`<rect x="${leftX}" y="${sideY}" width="${sideW}" height="${sideH}" fill="#e7deca" stroke="${palette.furnitureStroke}" stroke-width="2"/>`)
+    items.push(`<rect x="${rightX}" y="${sideY}" width="${sideW}" height="${sideH}" fill="#e7deca" stroke="${palette.furnitureStroke}" stroke-width="2"/>`)
+    items.push(`<rect x="${wardrobeX}" y="${wardrobeY}" width="${wardrobeW}" height="${wardrobeH}" fill="#ddd4bf" stroke="${palette.furnitureStroke}" stroke-width="2"/>`)
+    items.push(`<text x="${bedX + bedW / 2}" y="${bedY + bedH / 2 + 4}" text-anchor="middle" font-size="12" fill="${palette.text}">BED</text>`)
+  } else if (roomType === "Kitchen") {
+    const runH = Math.max(30, Math.round(roomH * 0.13))
+    const runW = Math.max(120, Math.round(roomW * 0.5))
+    const islandW = Math.max(110, Math.round(roomW * 0.38))
+    const islandH = Math.max(48, Math.round(roomH * 0.2))
+
+    items.push(`<rect x="${roomX + 12}" y="${roomY + 12}" width="${runW}" height="${runH}" fill="#d4ccb9" stroke="${palette.furnitureStroke}" stroke-width="2"/>`)
+    items.push(`<rect x="${roomX + 12}" y="${roomY + 12 + runH + 8}" width="${runH}" height="${Math.max(90, Math.round(roomH * 0.38))}" fill="#d4ccb9" stroke="${palette.furnitureStroke}" stroke-width="2"/>`)
+    items.push(`<rect x="${roomX + roomW - runW - 12}" y="${roomY + roomH - runH - 12}" width="${runW}" height="${runH}" fill="#d4ccb9" stroke="${palette.furnitureStroke}" stroke-width="2"/>`)
+    items.push(`<rect x="${roomX + Math.round((roomW - islandW) / 2)}" y="${roomY + Math.round((roomH - islandH) / 2)}" width="${islandW}" height="${islandH}" rx="6" fill="${palette.furniture}" stroke="${palette.furnitureStroke}" stroke-width="2"/>`)
+    items.push(`<text x="${roomX + roomW / 2}" y="${roomY + roomH / 2 + 4}" text-anchor="middle" font-size="12" fill="${palette.text}">ISLAND</text>`)
+  } else {
+    const zoneW = Math.max(140, Math.round(roomW * 0.5))
+    const zoneH = Math.max(80, Math.round(roomH * 0.32))
+    items.push(`<rect x="${roomX + 16}" y="${roomY + 16}" width="${zoneW}" height="${zoneH}" fill="${palette.furniture}" stroke="${palette.furnitureStroke}" stroke-width="2"/>`)
+    items.push(`<rect x="${roomX + roomW - zoneW - 16}" y="${roomY + roomH - zoneH - 16}" width="${zoneW}" height="${zoneH}" fill="#e8dfcb" stroke="${palette.furnitureStroke}" stroke-width="2"/>`)
+  }
+
+  const doorW = Math.max(36, Math.round(roomW * 0.12))
+  const doorX = roomX + Math.round((roomW - doorW) / 2)
+  const doorY = roomY + roomH - 2
+
+  return `
+<svg xmlns="http://www.w3.org/2000/svg" width="${canvas}" height="${canvas}" viewBox="0 0 ${canvas} ${canvas}" role="img" aria-label="Suggested ${roomType.toLowerCase()} layout sketch">
+  <rect width="100%" height="100%" fill="${palette.bg}" />
+  <rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" fill="#fffdf8" stroke="${palette.wall}" stroke-width="4" />
+  ${items.join("\n  ")}
+  <line x1="${doorX}" y1="${doorY}" x2="${doorX + doorW}" y2="${doorY}" stroke="#f6f4ef" stroke-width="5" />
+  <path d="M ${doorX} ${doorY} A ${doorW} ${doorW} 0 0 0 ${doorX + doorW} ${doorY - doorW}" fill="none" stroke="#8a826f" stroke-width="1.5" stroke-dasharray="3 2" />
+  <text x="${canvas / 2}" y="30" text-anchor="middle" font-size="16" fill="${palette.text}" font-family="Arial, sans-serif">Suggested ${roomType} Layout</text>
+  <text x="${canvas / 2}" y="${canvas - 24}" text-anchor="middle" font-size="12" fill="#5a5448" font-family="Arial, sans-serif">${width.toFixed(1)}m x ${length.toFixed(1)}m | ${style} style direction</text>
+  <text x="${doorX + doorW / 2}" y="${doorY - doorW - 6}" text-anchor="middle" font-size="10" fill="#5a5448" font-family="Arial, sans-serif">ENTRY</text>
+</svg>`.trim()
+}
+
 export function generateDesignConcept(input: DesignRequest): DesignConcept {
   const width = parseMeters(input.width)
   const length = parseMeters(input.length)
@@ -175,6 +282,7 @@ export function generateDesignConcept(input: DesignRequest): DesignConcept {
   return {
     summary: `${input.style} ${input.roomType.toLowerCase()} concept for approximately ${area.toFixed(1)} m2.`,
     layoutPlan: layoutTips(input.roomType, width, length),
+    layoutSketchSvg: generateLayoutSketchSvg(input.roomType, input.style, width, length),
     furniturePlan: furnitureIdeas(input.roomType, input.budget),
     decorationPlan: [
       `Base palette: keep 70% neutral tones, 20% ${input.style.toLowerCase()}-aligned textures, and 10% accent color.`,
