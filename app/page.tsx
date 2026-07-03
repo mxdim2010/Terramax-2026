@@ -294,6 +294,9 @@ export default function HomePage() {
             <Link className="hover:text-amber-700" href="/interior-design-helper">
               Interior Design Helper
             </Link>
+            <Link className="hover:text-amber-700" href="/account">
+              Account
+            </Link>
             <Link className="hover:text-amber-700" href="#services">
               Services
             </Link>
@@ -308,7 +311,10 @@ export default function HomePage() {
             </Link>
           </nav>
 
-          <div className="hidden md:block">
+          <div className="hidden items-center gap-3 md:flex">
+            <Button asChild variant="ghost" className="rounded-none uppercase tracking-[0.1em]">
+              <Link href="/login">Log In</Link>
+            </Button>
             <Button asChild className="rounded-none bg-stone-900 px-6 uppercase tracking-[0.1em] hover:bg-stone-800">
               <a href="tel:+447576039659">Call +44 7576039659</a>
             </Button>
@@ -329,6 +335,12 @@ export default function HomePage() {
             <div className="space-y-1 px-4 py-4 text-sm uppercase tracking-[0.14em]">
               <Link className="block py-2" href="/interior-design-helper" onClick={() => setIsMenuOpen(false)}>
                 Interior Design Helper
+              </Link>
+              <Link className="block py-2" href="/account" onClick={() => setIsMenuOpen(false)}>
+                Account
+              </Link>
+              <Link className="block py-2" href="/login" onClick={() => setIsMenuOpen(false)}>
+                Log In
               </Link>
               <Link className="block py-2" href="#services" onClick={() => setIsMenuOpen(false)}>
                 Services
