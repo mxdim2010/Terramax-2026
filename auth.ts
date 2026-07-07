@@ -3,6 +3,7 @@ import type { Session, User } from "next-auth"
 import type { JWT } from "next-auth/jwt"
 import Credentials from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@auth/prisma-adapter"
+import { createHash } from "node:crypto"
 import { z } from "zod"
 
 import { prisma } from "@/lib/prisma"
@@ -13,7 +14,13 @@ const credentialsSchema = z.object({
   password: z.string().min(8),
 })
 
+const authSecret =
+  process.env.AUTH_SECRET ||
+  process.env.NEXTAUTH_SECRET ||
+  (process.env.DATABASE_URL ? createHash("sha256").update(process.env.DATABASE_URL).digest("hex") : undefined)
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: authSecret,
   trustHost: true,
   adapter: PrismaAdapter(prisma),
   pages: {
