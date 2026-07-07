@@ -1,13 +1,14 @@
-import { randomUUID } from "node:crypto"
-
 import { NextResponse } from "next/server"
 
+import { auth } from "@/auth"
 import {
   type DesignConcept,
   type DesignRequest,
   generateDesignConcept,
 } from "@/lib/interior-design-engine"
 import { listProjects, saveProject } from "@/lib/interior-design-store"
+
+export const dynamic = "force-dynamic"
 
 type SaveProjectPayload = {
   projectName?: string
@@ -17,12 +18,31 @@ type SaveProjectPayload = {
 
 export async function GET() {
   try {
-    const projects = await listProjects()
+    const session = await auth()
 
-    return NextResponse.json({
-      success: true,
-      projects,
-    })
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Please log in to view projects.",
+        },
+        { status: 401 },
+      )
+    }
+
+    const projects = await listProjects(session.user.id)
+
+    return NextResponse.json(
+      {
+        success: true,
+        projects,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      },
+    )
   } catch (error) {
     console.error("Projects list error:", error)
 
@@ -38,6 +58,18 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const session = await auth()
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Please log in to save projects.",
+        },
+        { status: 401 },
+      )
+    }
+
     const body = (await request.json()) as SaveProjectPayload
 
     if (!body.request) {
@@ -51,21 +83,25 @@ export async function POST(request: Request) {
     }
 
     const concept = body.concept ?? generateDesignConcept(body.request)
-    const now = new Date().toISOString()
 
     const project = await saveProject({
-      id: randomUUID(),
+      userId: session.user.id,
       projectName: body.projectName?.trim() || `${body.request.roomType} concept`,
       request: body.request,
       concept,
-      createdAt: now,
-      updatedAt: now,
     })
 
-    return NextResponse.json({
-      success: true,
-      project,
-    })
+    return NextResponse.json(
+      {
+        success: true,
+        project,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      },
+    )
   } catch (error) {
     console.error("Save project error:", error)
 

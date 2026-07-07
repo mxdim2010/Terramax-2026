@@ -72,7 +72,9 @@ export default function InteriorDesignHelperPage() {
 
   const loadProjects = async () => {
     try {
-      const response = await fetch("/api/interior-design-helper/projects")
+      const response = await fetch("/api/interior-design-helper/projects", {
+        cache: "no-store",
+      })
       const data = (await response.json()) as {
         success: boolean
         projects?: StoredProject[]
