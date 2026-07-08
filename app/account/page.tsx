@@ -7,6 +7,7 @@ import { ChangePasswordForm } from "@/components/change-password-form"
 import { ProfileForm } from "@/components/profile-form"
 import { SignOutForm } from "@/components/sign-out-form"
 import { Card, CardContent } from "@/components/ui/card"
+import { WorkspaceSummary } from "@/components/workspace-summary"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -99,16 +100,7 @@ export default async function AccountPage() {
             <Card className="border-stone-300 bg-white shadow-sm">
               <CardContent className="space-y-4 p-8">
                 <h2 className="font-display text-2xl uppercase tracking-[0.08em] text-stone-900">Workspace Summary</h2>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-sm border border-stone-200 bg-stone-50 p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Saved Projects</p>
-                    <p className="mt-2 font-display text-4xl text-stone-900">{projectCount}</p>
-                  </div>
-                  <div className="rounded-sm border border-stone-200 bg-stone-50 p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Role</p>
-                    <p className="mt-2 font-display text-2xl uppercase text-stone-900">{user.role}</p>
-                  </div>
-                </div>
+                <WorkspaceSummary initialProjectCount={projectCount} role={user.role} />
               </CardContent>
             </Card>
 
