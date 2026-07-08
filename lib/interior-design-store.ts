@@ -33,6 +33,10 @@ type ProjectRecord = {
   updatedAt: Date
 }
 
+function toInputJsonValue(value: DesignRequest | DesignConcept): Prisma.InputJsonValue {
+  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue
+}
+
 function mapProject(project: ProjectRecord): StoredDesignProject {
   return {
     id: project.id,
@@ -75,8 +79,8 @@ export async function saveProject(project: {
     data: {
       userId: project.userId,
       projectName: project.projectName,
-      request: project.request as Prisma.InputJsonValue,
-      concept: project.concept as Prisma.InputJsonValue,
+      request: toInputJsonValue(project.request),
+      concept: toInputJsonValue(project.concept),
     },
   })
 
