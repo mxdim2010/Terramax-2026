@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { unstable_noStore as noStore } from "next/cache"
 
 import { auth } from "@/auth"
 import { ChangePasswordForm } from "@/components/change-password-form"
@@ -8,7 +9,11 @@ import { SignOutForm } from "@/components/sign-out-form"
 import { Card, CardContent } from "@/components/ui/card"
 import { prisma } from "@/lib/prisma"
 
+export const dynamic = "force-dynamic"
+
 export default async function AccountPage() {
+  noStore()
+
   const session = await auth()
 
   if (!session?.user?.id) {
