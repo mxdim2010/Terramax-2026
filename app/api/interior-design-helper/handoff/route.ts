@@ -1,7 +1,6 @@
-import { randomUUID } from "node:crypto"
-
 import { NextResponse } from "next/server"
 
+import { auth } from "@/auth"
 import { getProjectById, saveHandoffLead } from "@/lib/interior-design-store"
 
 type HandoffPayload = {
@@ -14,6 +13,18 @@ type HandoffPayload = {
 
 export async function POST(request: Request) {
   try {
+    const session = await auth()
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Please log in to request a designer handoff.",
+        },
+        { status: 401 },
+      )
+    }
+
     const body = (await request.json()) as HandoffPayload
 
     if (!body.projectId || !body.name || !body.email) {
@@ -37,7 +48,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const project = await getProjectById(body.projectId)
+    const project = await getProjectById(session.user.id, body.projectId)
     if (!project) {
       return NextResponse.json(
         {
@@ -49,13 +60,11 @@ export async function POST(request: Request) {
     }
 
     const lead = await saveHandoffLead({
-      id: randomUUID(),
       projectId: body.projectId,
       name: body.name.trim(),
       email: body.email.trim(),
       phone: body.phone?.trim(),
       message: body.message?.trim(),
-      createdAt: new Date().toISOString(),
     })
 
     if (process.env.RESEND_API_KEY) {

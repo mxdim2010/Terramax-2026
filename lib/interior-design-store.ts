@@ -1,10 +1,11 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises"
-import path from "node:path"
+import type { Prisma } from "@prisma/client"
 
 import type { DesignConcept, DesignRequest } from "@/lib/interior-design-engine"
+import { prisma } from "@/lib/prisma"
 
 export type StoredDesignProject = {
   id: string
+  userId: string
   projectName: string
   request: DesignRequest
   concept: DesignConcept
@@ -22,102 +23,84 @@ export type DesignerHandoffLead = {
   createdAt: string
 }
 
-type StoreShape = {
-  projects: StoredDesignProject[]
-  handoffLeads: DesignerHandoffLead[]
+type ProjectRecord = {
+  id: string
+  userId: string
+  projectName: string
+  request: Prisma.JsonValue
+  concept: Prisma.JsonValue
+  createdAt: Date
+  updatedAt: Date
 }
 
-const dataDir = process.env.VERCEL ? path.join("/tmp", ".data") : path.join(process.cwd(), ".data")
-const dbFile = path.join(dataDir, "interior-design-db.json")
-let memoryStore: StoreShape = { projects: [], handoffLeads: [] }
-let memoryMode = false
-
-async function ensureStore() {
-  if (memoryMode) {
-    return
-  }
-
-  try {
-    await mkdir(dataDir, { recursive: true })
-  } catch {
-    memoryMode = true
-    return
-  }
-
-  try {
-    await readFile(dbFile, "utf-8")
-  } catch {
-    try {
-      await writeFile(dbFile, JSON.stringify(memoryStore, null, 2), "utf-8")
-    } catch {
-      memoryMode = true
-    }
+function mapProject(project: ProjectRecord): StoredDesignProject {
+  return {
+    id: project.id,
+    userId: project.userId,
+    projectName: project.projectName,
+    request: project.request as unknown as DesignRequest,
+    concept: project.concept as unknown as DesignConcept,
+    createdAt: project.createdAt.toISOString(),
+    updatedAt: project.updatedAt.toISOString(),
   }
 }
 
-async function readStore(): Promise<StoreShape> {
-  await ensureStore()
+export async function listProjects(userId: string) {
+  const projects = await prisma.interiorDesignProject.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+  })
 
-  if (memoryMode) {
-    return memoryStore
-  }
-
-  const raw = await readFile(dbFile, "utf-8")
-
-  try {
-    return JSON.parse(raw) as StoreShape
-  } catch {
-    return memoryStore
-  }
+  return projects.map(mapProject)
 }
 
-async function writeStore(store: StoreShape) {
-  memoryStore = store
+export async function getProjectById(userId: string, id: string) {
+  const project = await prisma.interiorDesignProject.findFirst({
+    where: {
+      id,
+      userId,
+    },
+  })
 
-  await ensureStore()
+  return project ? mapProject(project) : null
+}
 
-  if (memoryMode) {
-    return
+export async function saveProject(project: {
+  userId: string
+  projectName: string
+  request: DesignRequest
+  concept: DesignConcept
+}) {
+  const savedProject = await prisma.interiorDesignProject.create({
+    data: {
+      userId: project.userId,
+      projectName: project.projectName,
+      request: project.request as Prisma.InputJsonValue,
+      concept: project.concept as Prisma.InputJsonValue,
+    },
+  })
+
+  return mapProject(savedProject)
+}
+
+export async function saveHandoffLead(lead: Omit<DesignerHandoffLead, "id" | "createdAt">) {
+  const savedLead = await prisma.designerHandoffLead.create({
+    data: {
+      projectId: lead.projectId,
+      name: lead.name,
+      email: lead.email,
+      phone: lead.phone,
+      message: lead.message,
+    },
+  })
+
+  return {
+    id: savedLead.id,
+    projectId: savedLead.projectId,
+    name: savedLead.name,
+    email: savedLead.email,
+    phone: savedLead.phone ?? undefined,
+    message: savedLead.message ?? undefined,
+    createdAt: savedLead.createdAt.toISOString(),
   }
-
-  try {
-    await writeFile(dbFile, JSON.stringify(store, null, 2), "utf-8")
-  } catch {
-    memoryMode = true
-  }
-}
-
-export async function listProjects() {
-  const store = await readStore()
-
-  return store.projects.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-}
-
-export async function getProjectById(id: string) {
-  const store = await readStore()
-
-  return store.projects.find((project) => project.id === id) ?? null
-}
-
-export async function saveProject(project: StoredDesignProject) {
-  const store = await readStore()
-  const existingIndex = store.projects.findIndex((item) => item.id === project.id)
-
-  if (existingIndex >= 0) {
-    store.projects[existingIndex] = project
-  } else {
-    store.projects.push(project)
-  }
-
-  await writeStore(store)
-
-  return project
-}
-
-export async function saveHandoffLead(lead: DesignerHandoffLead) {
-  const store = await readStore()
-  store.handoffLeads.push(lead)
-  await writeStore(store)
-
-  return lead
 }

@@ -1,6 +1,7 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib"
 import { NextResponse } from "next/server"
 
+import { auth } from "@/auth"
 import { getProjectById } from "@/lib/interior-design-store"
 
 type Params = {
@@ -13,8 +14,20 @@ function sanitizeFileName(value: string) {
 
 export async function GET(_request: Request, { params }: Params) {
   try {
+    const session = await auth()
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Please log in to export project briefs.",
+        },
+        { status: 401 },
+      )
+    }
+
     const { id } = await params
-    const project = await getProjectById(id)
+    const project = await getProjectById(session.user.id, id)
 
     if (!project) {
       return NextResponse.json(

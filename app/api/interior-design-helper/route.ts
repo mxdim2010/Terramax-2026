@@ -1,9 +1,22 @@
 import { NextResponse } from "next/server"
 
+import { auth } from "@/auth"
 import { type DesignRequest, generateDesignConcept, parseMeters } from "@/lib/interior-design-engine"
 
 export async function POST(request: Request) {
   try {
+    const session = await auth()
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Please log in to use the interior design helper.",
+        },
+        { status: 401 },
+      )
+    }
+
     const body = (await request.json()) as DesignRequest
 
     if (!body.roomType || !body.style || !body.budget || !body.width || !body.length) {
